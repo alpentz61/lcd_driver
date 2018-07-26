@@ -7,7 +7,7 @@
 * @section intro_sec Introduction
 *
 * This is the documentation for Adafruit's ILI9341 driver for the
-* Arduino platform. 
+* Arduino platform.
 *
 * This library works with the Adafruit 2.8" Touch Shield V2 (SPI)
 *    http://www.adafruit.com/products/1651
@@ -21,7 +21,7 @@
 * 2.2" 18-bit color TFT LCD display with microSD card breakout - ILI9340
 *    https://www.adafruit.com/product/1770
 *
-* TFT FeatherWing - 2.4" 320x240 Touchscreen For All Feathers 
+* TFT FeatherWing - 2.4" 320x240 Touchscreen For All Feathers
 *    https://www.adafruit.com/product/3315
 *
 * These displays use SPI to communicate, 4 or 5 pins are required
@@ -156,7 +156,7 @@
 #else
     // Standard Byte-by-Byte SPI
 
-    #if defined (__AVR__) || defined(TEENSYDUINO)
+#if defined (__AVR__) || defined(TEENSYDUINO)
 static inline uint8_t _avr_spi_read(void) __attribute__((always_inline));
 static inline uint8_t _avr_spi_read(void) {
     uint8_t r = 0;
@@ -165,11 +165,11 @@ static inline uint8_t _avr_spi_read(void) {
     r = SPDR;
     return r;
 }
-        #define HSPI_WRITE(b)            {SPDR = (b); while(!(SPSR & _BV(SPIF)));}
-        #define HSPI_READ()              _avr_spi_read()
-    #else
-        #define HSPI_WRITE(b)            SPI_OBJECT.transfer((uint8_t)(b))    ///< Hardware SPI write 8 bits
-        #define HSPI_READ()              HSPI_WRITE(0)    ///< Hardware SPI read 8 bits
+    #define HSPI_WRITE(b)            {SPDR = (b); while(!(SPSR & _BV(SPIF)));}
+    #define HSPI_READ()              _avr_spi_read()
+#else
+    #define HSPI_WRITE(b)            SPI_OBJECT.transfer((uint8_t)(b))    ///< Hardware SPI write 8 bits
+    #define HSPI_READ()              HSPI_WRITE(0)    ///< Hardware SPI read 8 bits
     #endif
     #define HSPI_WRITE16(s)          HSPI_WRITE((s) >> 8); HSPI_WRITE(s)  ///< Hardware SPI write 16 bits
     #define HSPI_WRITE32(l)          HSPI_WRITE((l) >> 24); HSPI_WRITE((l) >> 16); HSPI_WRITE((l) >> 8); HSPI_WRITE(l)          ///< Hardware SPI write 32 bits

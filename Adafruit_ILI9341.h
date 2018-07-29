@@ -34,7 +34,9 @@
 */
 
 /*
-* Modified by Andrew Pentz to run on the Raspberry Pi
+* Modified by Andrew Pentz to:
+* 	1.  run on the Raspberry Pi
+*   2.  run on the STM32f4disc board
 *
 *
 */
@@ -42,22 +44,19 @@
 #ifndef _ADAFRUIT_ILI9341H_
 #define _ADAFRUIT_ILI9341H_
 
-#if ARDUINO >= 100
- #include "Arduino.h"
- #include "Print.h"
-#else
- #include "WProgram.h"
-#endif
-#include <SPI.h>
-#include "Adafruit_GFX.h"
 
-#if defined(ARDUINO_STM32_FEATHER)
-typedef volatile uint32 RwReg;
-#endif
-#if defined(ARDUINO_FEATHER52) || defined (ARDUINO_MAXIM)
-typedef volatile uint32_t RwReg;
-#endif
+#include <stdio.h>  		//printf
 
+#include <stdint.h>			//uint_t
+
+#include <bcm2835.h>
+
+//Pin Defintions
+#define CS 		RPI_GPIO_P1_11
+#define DC 		RPI_GPIO_P1_15 
+#define RESET 	RPI_GPIO_P1_22
+
+//Command Definitions
 #define ILI9341_TFTWIDTH   240       ///< ILI9341 max TFT width
 #define ILI9341_TFTHEIGHT  320       ///< ILI9341 max TFT height
 
@@ -138,91 +137,54 @@ typedef volatile uint32_t RwReg;
 #define ILI9341_GREENYELLOW 0xAFE5      ///< 173, 255,  47
 #define ILI9341_PINK        0xFC18      ///< 255, 128, 192
 
-#if defined (ARDUINO_STM32_FEATHER) || defined (ARDUINO_MAXIM)    // doesnt work on wiced feather
-  #undef USE_FAST_PINIO
-#elif defined (__AVR__) || defined(TEENSYDUINO) || defined(ESP8266) || defined (ESP32) || defined(__arm__)
-  #define USE_FAST_PINIO
-#endif
-
 
 /// Class to manage hardware interface with ILI9341 chipset (also seems to work with ILI9340)
-class Adafruit_ILI9341 : public Adafruit_GFX {
-    protected:
-
+class Adafruit_ILI9341 {
     public:
-        Adafruit_ILI9341(int8_t _CS, int8_t _DC, int8_t _MOSI, int8_t _SCLK, int8_t _RST = -1, int8_t _MISO = -1);
-        Adafruit_ILI9341(int8_t _CS, int8_t _DC, int8_t _RST = -1);
+        Adafruit_ILI9341(){}
 
-#ifndef ESP32
-        void      begin(uint32_t freq = 0);
-#else
-        void      begin(uint32_t freq = 0, SPIClass &spi=SPI);
-#endif
-        void      setRotation(uint8_t r);
-        void      invertDisplay(boolean i);
-        void      scrollTo(uint16_t y);
-
-        // Required Non-Transaction
-        void      drawPixel(int16_t x, int16_t y, uint16_t color);
-
+		bool	begin();
+        void	end(void);
+        void	setRotation(uint8_t r);
+        void	invertDisplay(bool i);
+        void	scrollTo(uint16_t y);
+        
         // Transaction API
-        void      startWrite(void);
-        void      endWrite(void);
+        void      setAddrWindow(uint16_t x, uint16_t y, uint16_t w, uint16_t h);
+		void      pushColor(uint16_t color);
+        void      writePixel(uint16_t color);
+        void      writePixels(uint16_t * colors, uint32_t len);
+        void      writeColor(uint16_t color, uint32_t len);
+        
         void      writePixel(int16_t x, int16_t y, uint16_t color);
         void      writeFillRect(int16_t x, int16_t y, int16_t w, int16_t h, uint16_t color);
         void      writeFastVLine(int16_t x, int16_t y, int16_t h, uint16_t color);
         void      writeFastHLine(int16_t x, int16_t y, int16_t w, uint16_t color);
 
-        // Transaction API not used by GFX
-        void      setAddrWindow(uint16_t x, uint16_t y, uint16_t w, uint16_t h);
-        void      writePixel(uint16_t color);
-        void      writePixels(uint16_t * colors, uint32_t len);
-        void      writeColor(uint16_t color, uint32_t len);
-	      void      pushColor(uint16_t color);
-
-        // Recommended Non-Transaction
+        // Required Non-Transaction (Includes transaction code)
+        void      drawPixel(int16_t x, int16_t y, uint16_t color);
         void      drawFastVLine(int16_t x, int16_t y, int16_t h, uint16_t color);
         void      drawFastHLine(int16_t x, int16_t y, int16_t w, uint16_t color);
         void      fillRect(int16_t x, int16_t y, int16_t w, int16_t h, uint16_t color);
-
-        using     Adafruit_GFX::drawRGBBitmap; // Check base class first
         void      drawRGBBitmap(int16_t x, int16_t y,
                     uint16_t *pcolors, int16_t w, int16_t h);
 
-        uint8_t   readcommand8(uint8_t reg, uint8_t index = 0);
 
         uint16_t  color565(uint8_t r, uint8_t g, uint8_t b);
 
-    private:
-#ifdef ESP32
-        SPIClass _spi;
-#endif
-        uint32_t _freq;
-#if defined (__AVR__) || defined(TEENSYDUINO)
-        int8_t  _cs, _dc, _rst, _sclk, _mosi, _miso;
-#ifdef USE_FAST_PINIO
-        volatile uint8_t *mosiport, *misoport, *clkport, *dcport, *csport;
-        uint8_t  mosipinmask, misopinmask, clkpinmask, cspinmask, dcpinmask;
-#endif
-#elif defined (__arm__)
-        int32_t  _cs, _dc, _rst, _sclk, _mosi, _miso;
-#ifdef USE_FAST_PINIO
-        volatile RwReg *mosiport, *misoport, *clkport, *dcport, *csport;
-        uint32_t  mosipinmask, misopinmask, clkpinmask, cspinmask, dcpinmask;
-#endif
-#elif defined (ESP8266) || defined (ESP32)
-        int8_t   _cs, _dc, _rst, _sclk, _mosi, _miso;
-#ifdef USE_FAST_PINIO
-        volatile uint32_t *mosiport, *misoport, *clkport, *dcport, *csport;
-        uint32_t  mosipinmask, misopinmask, clkpinmask, cspinmask, dcpinmask;
-#endif
-#else
-        int8_t      _cs, _dc, _rst, _sclk, _mosi, _miso;
-#endif
-
-        void        writeCommand(uint8_t cmd);
-        void        spiWrite(uint8_t v);
-        uint8_t     spiRead(void);
+		uint8_t  	readcommand8(uint8_t reg, uint8_t index = 0);
+		void     	startWrite(void);
+        void     	endWrite(void);
+        void      	writeCommand(uint8_t cmd);
+        uint8_t  	spiRead(void);
+        void      	spiWrite(uint8_t v);
+        void 		spiWrite16(uint16_t s);
+        void 		spiWrite32(uint32_t w);
+        void 		spiWritePixels(uint16_t *c, uint32_t l);
+        
+	private:
+		uint32_t	_width;
+		uint32_t 	_height;
 };
 
 #endif

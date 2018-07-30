@@ -35,8 +35,8 @@
 
 /*
 * Modified by Andrew Pentz to:
-* 	1.  run on the Raspberry Pi
-*   2.  run on the STM32f4disc board
+* 	1.  Be compatible with the Raspberry Pi
+*   2.  Be compatible with the STM32f4disc board
 *
 *
 */
@@ -143,7 +143,7 @@ class Adafruit_ILI9341 {
     public:
         Adafruit_ILI9341(){}
 
-		bool	begin();
+		bool	begin(void);
         void	end(void);
         void	setRotation(uint8_t r);
         void	invertDisplay(bool i);

@@ -17,11 +17,10 @@ public:
 				SPI();
 	bool 		begin(void);
 	void 		end(void);
-    uint8_t 	spiRead(void);
-    void     	spiWrite(uint8_t v);
-    void 		spiWrite16(uint16_t s);
-    void 		spiWrite32(uint32_t w);
-    void 		spiWritePixels(uint16_t *c, uint32_t l);
+    uint8_t 	read(void);
+    void     	write(uint8_t v);
+    void 		write16(uint16_t s);
+    void 		write32(uint32_t w);
 private:
 	const char *device;
 	uint8_t mode;

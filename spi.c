@@ -91,7 +91,7 @@ exit_noclose:
 void SPI::end(void) {
 	close(fd);
 }
-uint8_t SPI::spiRead(void) {
+uint8_t SPI::read(void) {
 	int ret;
 	tx8[0] = 0;
 	ret = ioctl(fd, SPI_IOC_MESSAGE(1), &tr8);
@@ -101,7 +101,7 @@ uint8_t SPI::spiRead(void) {
 	}
 	return rx8[0];
 }
-void SPI::spiWrite(uint8_t v) {
+void SPI::write(uint8_t v) {
 	int ret;
 	tx8[0] = v;
 	ret = ioctl(fd, SPI_IOC_MESSAGE(1), &tr8);
@@ -110,7 +110,7 @@ void SPI::spiWrite(uint8_t v) {
 		return;
 	}
 }
-void SPI::spiWrite16(uint16_t s) {
+void SPI::write16(uint16_t s) {
 	int ret;
 	tx16[0] = s >> 8; //Write out in Big Endian
 	tx16[1] = s;
@@ -120,7 +120,7 @@ void SPI::spiWrite16(uint16_t s) {
 		return;
 	}
 }
-void SPI::spiWrite32(uint32_t w) {
+void SPI::write32(uint32_t w) {
 	int ret;
 	tx32[0] = w >> 24; //Write out in Big Endian
 	tx32[1] = w >> 16;
@@ -141,8 +141,11 @@ int main(int argc, char *argv[])
 		return -1;
 	}
 	
+	spi.write(0x7);
+	spi.write16(0x0704);
+	spi.write32(0x01020304);
 	
 	spi.end();
-	
+	printf("Done");
 	return 0;
 }
